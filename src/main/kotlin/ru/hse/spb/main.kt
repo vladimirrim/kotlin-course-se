@@ -1,6 +1,6 @@
 package ru.hse.spb
 
-fun getSuffix(str: String): String {
+fun getSuffix(str: String): String? {
     return when {
         str.endsWith("etr") -> "etr"
         str.endsWith("etra") -> "etra"
@@ -8,11 +8,11 @@ fun getSuffix(str: String): String {
         str.endsWith("inites") -> "inites"
         str.endsWith("lios") -> "lios"
         str.endsWith("liala") -> "liala"
-        else -> ""
+        else -> null
     }
 }
 
-fun checkSameGender(prev: String, cur: String): Boolean {
+fun checkSameGender(prev: String?, cur: String?): Boolean {
     val woman = arrayOf("etra", "inites", "liala")
     val man = arrayOf("etr", "initis", "lios")
 
@@ -20,40 +20,53 @@ fun checkSameGender(prev: String, cur: String): Boolean {
 }
 
 
-fun checkOrder(prevString: String, curString: String): Boolean {
+fun checkOrder(prevString: String?, curString: String?): Boolean {
     val nouns = arrayOf("etr", "etra")
     val verbs = arrayOf("initis", "inites")
     val adjs = arrayOf("lios", "liala")
 
+    if (prevString == null)
+        return true
+
+    if (!checkSameGender(prevString, curString))
+        return false
+
     return when (prevString) {
-        "" -> true
+        "etr", "etra", "initis", "inites" -> curString in verbs
 
-        "etr", "etra", "initis", "inites" -> curString in verbs && checkSameGender(prevString, curString)
-
-        "lios", "liala" -> (curString in nouns || curString in adjs) && checkSameGender(prevString, curString)
+        "lios", "liala" -> (curString in nouns || curString in adjs)
 
         else -> false
     }
 }
 
 fun main(args: Array<String>) {
-    var prevString = ""
-    var ans = true
-    var wordCount = 0
+    var prevString: String? = null
+    var answer = true
     var hasNoun = false
     val nouns = arrayOf("etr", "etra")
+    val words = readLine()!!.split(' ')
 
-    readLine()!!.split(' ').forEach { curString ->
-        val suf = getSuffix(curString)
-        if (suf == "" || !checkOrder(prevString, suf)) {
-            ans = false
-        }
-        wordCount++
-        if (suf in nouns)
-            hasNoun = true
-        prevString = suf
+    if (words.size == 1) {
+        if (getSuffix(words[0]) != null)
+            print("YES")
+        else
+            print("NO")
+        return
     }
-    if (ans && (wordCount == 1 || hasNoun))
+    run breaker@{
+        words.forEach { curString ->
+            val suffix = getSuffix(curString)
+            if (suffix == null || !checkOrder(prevString, suffix)) {
+                answer = false
+                return@breaker
+            }
+            if (suffix in nouns)
+                hasNoun = true
+            prevString = suffix
+        }
+    }
+    if (answer && hasNoun)
         print("YES")
     else
         print("NO")
