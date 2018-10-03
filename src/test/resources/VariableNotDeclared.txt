@@ -1,0 +1,9 @@
+fun foo(n) {
+    fun bar(m) {
+        return k
+    }
+
+    return bar(1)
+}
+
+println(foo(41))

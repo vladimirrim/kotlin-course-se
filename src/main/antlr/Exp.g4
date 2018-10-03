@@ -1,32 +1,108 @@
 grammar Exp;
 
-
-eval returns [double value]
-    :    exp=additionExp {$value = $exp.value;}
+block
+    : (statement)*
     ;
 
-additionExp returns [double value]
-    :    m1=multiplyExp       {$value =  $m1.value;}
-         ( '+' m2=multiplyExp {$value += $m2.value;}
-         | '-' m2=multiplyExp {$value -= $m2.value;}
-         )*
+blockWithBraces
+    : '{' block '}'
     ;
 
-multiplyExp returns [double value]
-    :    a1=atomExp       {$value =  $a1.value;}
-         ( '*' a2=atomExp {$value *= $a2.value;}
-         | '/' a2=atomExp {$value /= $a2.value;}
-         )*
+statement
+    : function
+    | variable
+    | expression
+    | whileExpr
+    | ifExpr
+    | assignment
+    | returnExpr
     ;
 
-atomExp returns [double value]
-    :    n=Number                {$value = Double.parseDouble($n.text);}
-    |    '(' exp=additionExp ')' {$value = $exp.value;}
+function
+    : 'fun' Identifier '(' parameterNames ')' blockWithBraces
     ;
 
-
-Number
-    :    ('0'..'9')+ ('.' ('0'..'9')+)?
+variable
+    : 'var' Identifier ('=' expression)?
     ;
+
+parameterNames
+    : (Identifier (',' Identifier)*)?
+    ;
+
+whileExpr
+    : 'while' '(' expression ')' blockWithBraces
+    ;
+
+ifExpr
+    : 'if' '(' expression ')' blockWithBraces ('else' blockWithBraces)?
+    ;
+
+assignment
+    : Identifier '=' expression
+    ;
+
+returnExpr
+    : 'return' expression
+    ;
+
+functionCall
+    : Identifier '(' arguments ')'
+    ;
+
+arguments
+    : (expression (',' expression)*)?
+    ;
+
+expression
+    : binaryExpression
+    | expressionVariable
+    ;
+
+expressionVariable
+    : functionCall
+    | Literal
+    | Identifier
+    | '(' expression ')'
+    ;
+
+binaryExpression
+    : expressionVariable op = (MULTIPLY | DIVIDE | MODULUS) expression
+    | expressionVariable op = (PLUS | MINUS) expression
+    | expressionVariable op = (GT | LT | GTE | LTE) expression
+    | expressionVariable op = (EQ | NQ) expression
+    | expressionVariable op = LAND expression
+    | expressionVariable op = LOR expression
+    ;
+
+MULTIPLY : '*';
+DIVIDE : '/';
+MODULUS : '%';
+
+PLUS : '+';
+MINUS : '-';
+
+GT : '>';
+LT : '<';
+GTE : '>=';
+LTE : '<=';
+
+EQ : '==';
+NQ : '!=';
+
+LOR : '||';
+LAND : '&&';
+
+Literal
+    : '0'
+    | [1-9] ([0-9])*
+    ;
+
+Identifier
+    : [a-zA-Z_]
+      ([a-zA-Z_0-9])*
+    ;
+
+COMMENT : '//' ~[\r\n]* -> skip;
 
 WS : (' ' | '\t' | '\r'| '\n') -> skip;

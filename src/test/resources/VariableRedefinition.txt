@@ -1,0 +1,10 @@
+fun foo(n) {
+    fun bar(m) {
+        var n = 6
+        return n
+    }
+
+    return bar(1)
+}
+
+println(foo(41))
